@@ -1,80 +1,85 @@
-<!DOCTYPE html> 
-<html> 
-<head> 
-<meta charset="UTF-8"> 
-<title>Σύστημα Επαγγελματικού Προσανατολισμού</title> 
-<link rel="stylesheet" href="style.css"> 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script> 
-</head> 
- 
-<body> 
- 
-<header class="header"> 
-    <img src="logo.png" class="logo"> 
-    <div> 
-        <h1>Σύστημα Επαγγελματικού Προσανατολισμού</h1> 
-        <p>Επίσημη Εκπαιδευτική Έκδοση</p> 
-    </div> 
-</header> 
- 
-<p class="disclaimer"> 
-Το εργαλείο παρέχει ενδεικτικές προτάσεις και δεν αντικαθιστά τη συμβουλευτική εκπαιδευτικού. 
-</p> 
- 
-<input type="text" id="studentName" placeholder="Όνομα μαθητή"> 
- 
-<form id="skillsForm"> 
-<label><input type="checkbox" value="Λύνω μαθηματικά προβλήματα"> Λύνω μαθηματικά προβλήματα</label><br> 
-<label><input type="checkbox" value="Βοηθάω άλλους"> Βοηθάω άλλους</label><br> 
-<label><input type="checkbox" value="Δημιουργώ πράγματα"> Δημιουργώ πράγματα</label><br> 
-<label><input type="checkbox" value="Οργανώνω ομάδες"> Οργανώνω ομάδες</label><br> 
-<label><input type="checkbox" value="Διαβάζω πολύ"> Διαβάζω πολύ</label><br> 
-<label><input type="checkbox" value="Παίζω παιχνίδια στρατηγικής"> Παίζω παιχνίδια στρατηγικής</label><br> 
-<button type="button" onclick="submitForm()">Ανάλυση</button> 
-</form> 
- 
-<canvas id="skillsChart"></canvas> 
-<ul id="careerList"></ul> 
-<div id="aiResult"></div> 
-<button id="pdfBtn" style="display:none;">Λήψη PDF</button> 
- 
-<script> 
-async function submitForm(){ 
- 
-const name = document.getElementById("studentName").value; 
- 
-const selections = Array.from( 
-document.querySelectorAll('input[type=checkbox]:checked') 
-).map(c=>c.value); 
- 
-const response = await fetch("/analyze",{ 
-method:"POST", 
-headers:{"Content-Type":"application/json"}, 
-body:JSON.stringify({selections, student_name:name}) 
-}); 
- 
-const data = await response.json(); 
- 
-const ctx=document.getElementById('skillsChart').getContext('2d'); 
- 
-if(window.chart instanceof Chart){window.chart.destroy();} 
- 
-window.chart=new Chart(ctx,{ 
-type:'radar', 
-data:{labels:Object.keys(data.skills), 
-datasets:[{data:Object.values(data.skills)}]}, 
-options:{scales:{r:{min:0,max:100}}} 
-}); 
- 
-document.getElementById("aiResult").innerHTML= 
-"<h3>AI Ανάλυση</h3><p>"+data.analysis+"</p>"; 
- 
-document.getElementById("pdfBtn").style.display="inline-block"; 
-document.getElementById("pdfBtn").onclick=()=>{ 
-window.open("/export-pdf/"+data.id,"_blank"); 
-}; 
-} 
-</script> 
- 
-</body> 
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Σύστημα Επαγγελματικού Προσανατολισμού</title>
+<link rel="stylesheet" href="/static/style.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
+</head>
+
+<body>
+
+<header class="header">
+    <img src="/static/logo.png" class="logo">
+    <div>
+        <h1>Σύστημα Επαγγελματικού Προσανατολισμού</h1>
+        <p>Επίσημη Εκπαιδευτική Έκδοση</p>
+    </div>
+</header>
+
+<p class="disclaimer">
+Το εργαλείο παρέχει ενδεικτικές προτάσεις και δεν αντικαθιστά τη συμβουλευτική εκπαιδευτικού.
+</p>
+
+<input type="text" id="studentName" placeholder="Όνομα μαθητή">
+
+<form id="skillsForm">
+<label><input type="checkbox" value="Λύνω μαθηματικά προβλήματα"> Λύνω μαθηματικά προβλήματα</label><br>
+<label><input type="checkbox" value="Βοηθάω άλλους"> Βοηθάω άλλους</label><br>
+<label><input type="checkbox" value="Δημιουργώ πράγματα"> Δημιουργώ πράγματα</label><br>
+<label><input type="checkbox" value="Οργανώνω ομάδες"> Οργανώνω ομάδες</label><br>
+<label><input type="checkbox" value="Διαβάζω πολύ"> Διαβάζω πολύ</label><br>
+<label><input type="checkbox" value="Παίζω παιχνίδια στρατηγικής"> Παίζω παιχνίδια στρατηγικής</label><br>
+<button type="button" onclick="submitForm()">Ανάλυση</button>
+</form>
+
+<canvas id="skillsChart"></canvas>
+<div id="aiResult"></div>
+<button id="pdfBtn" style="display:none;">Λήψη PDF</button>
+
+<script>
+async function submitForm(){
+
+const name = document.getElementById("studentName").value;
+
+const selections = Array.from(
+document.querySelectorAll('input[type=checkbox]:checked')
+).map(c=>c.value);
+
+const response = await fetch("/analyze",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({selections, student_name:name})
+});
+
+const data = await response.json();
+
+if(data.error){
+    document.getElementById("aiResult").innerHTML =
+    "<p style='color:red;'>"+data.error+"</p>";
+    return;
+}
+
+const ctx=document.getElementById('skillsChart').getContext('2d');
+
+if(window.chart instanceof Chart){window.chart.destroy();}
+
+window.chart=new Chart(ctx,{
+type:'radar',
+data:{labels:Object.keys(data.skills),
+datasets:[{data:Object.values(data.skills)}]},
+options:{scales:{r:{min:0,max:100}}}
+});
+
+document.getElementById("aiResult").innerHTML=
+"<h3>AI Ανάλυση</h3><p>"+data.analysis+"</p>";
+
+document.getElementById("pdfBtn").style.display="inline-block";
+document.getElementById("pdfBtn").onclick=()=>{
+window.open("/export-pdf/"+data.id,"_blank");
+};
+}
+</script>
+
+</body>
 </html>
