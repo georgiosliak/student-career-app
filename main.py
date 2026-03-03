@@ -112,7 +112,10 @@ def analyze(input: SkillsInput):
         json.dump(data, f, indent=2) 
  
     return record 
- 
+
+@app.get("/")
+def serve_home():
+    return FileResponse("static/index.html") 
  
 @app.get("/export-pdf/{student_id}") 
 def export_pdf(student_id: str): 
