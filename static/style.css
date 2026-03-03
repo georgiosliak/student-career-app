@@ -5,7 +5,7 @@ margin:auto;
 padding:20px; 
 background:#f4f6f9; 
 } 
- 
+
 .header{ 
 display:flex; 
 align-items:center; 
@@ -13,9 +13,9 @@ gap:20px;
 border-bottom:2px solid #ddd; 
 padding-bottom:10px; 
 } 
- 
+
 .logo{width:80px;} 
- 
+
 button{ 
 background:#1e88e5; 
 color:white; 
@@ -24,20 +24,21 @@ padding:8px 16px;
 border-radius:6px; 
 cursor:pointer; 
 } 
- 
+
 button:hover{ 
 background:#1565c0; 
 } 
- 
+
 .disclaimer{ 
 font-size:14px; 
 color:#555; 
 margin-bottom:20px; 
 } 
- 
+
 #aiResult{ 
 margin-top:20px; 
 padding:15px; 
 background:white; 
 border-left:4px solid #1e88e5; 
+white-space: pre-wrap;
 }

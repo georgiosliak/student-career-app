@@ -6,9 +6,7 @@
 <link rel="stylesheet" href="/static/style.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1"></script>
 </head>
-
 <body>
-
 <header class="header">
     <img src="/static/logo.png" class="logo">
     <div>
@@ -22,6 +20,10 @@
 </p>
 
 <input type="text" id="studentName" placeholder="Όνομα μαθητή">
+<select id="gradeLevel">
+    <option value="Γυμνάσιο">Γυμνάσιο</option>
+    <option value="Λύκειο">Λύκειο</option>
+</select>
 
 <form id="skillsForm">
 <label><input type="checkbox" value="Λύνω μαθηματικά προβλήματα"> Λύνω μαθηματικά προβλήματα</label><br>
@@ -39,47 +41,23 @@
 
 <script>
 async function submitForm(){
-
-const name = document.getElementById("studentName").value;
-
-const selections = Array.from(
-document.querySelectorAll('input[type=checkbox]:checked')
-).map(c=>c.value);
-
-const response = await fetch("/analyze",{
-method:"POST",
-headers:{"Content-Type":"application/json"},
-body:JSON.stringify({selections, student_name:name})
+const name=document.getElementById("studentName").value;
+const grade=document.getElementById("gradeLevel").value;
+const selections=Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(c=>c.value);
+const response=await fetch("/analyze",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({selections, student_name:name, grade_level:grade})
 });
-
-const data = await response.json();
-
-if(data.error){
-    document.getElementById("aiResult").innerHTML =
-    "<p style='color:red;'>"+data.error+"</p>";
-    return;
-}
-
+const data=await response.json();
+if(data.error){document.getElementById("aiResult").innerHTML="<p style='color:red;'>"+data.error+"</p>";return;}
 const ctx=document.getElementById('skillsChart').getContext('2d');
-
 if(window.chart instanceof Chart){window.chart.destroy();}
-
-window.chart=new Chart(ctx,{
-type:'radar',
-data:{labels:Object.keys(data.skills),
-datasets:[{data:Object.values(data.skills)}]},
-options:{scales:{r:{min:0,max:100}}}
-});
-
-document.getElementById("aiResult").innerHTML=
-"<h3>AI Ανάλυση</h3><p>"+data.analysis+"</p>";
-
+window.chart=new Chart(ctx,{type:'radar',data:{labels:Object.keys(data.skills),datasets:[{data:Object.values(data.skills)}]},options:{scales:{r:{min:0,max:100}}}});
+document.getElementById("aiResult").innerHTML="<h3>Ανάλυση Δεξιοτήτων</h3><pre>"+data.analysis+"</pre>";
 document.getElementById("pdfBtn").style.display="inline-block";
-document.getElementById("pdfBtn").onclick=()=>{
-window.open("/export-pdf/"+data.id,"_blank");
-};
+document.getElementById("pdfBtn").onclick=()=>{window.open("/export-pdf/"+data.id,"_blank");};
 }
 </script>
-
 </body>
 </html>
